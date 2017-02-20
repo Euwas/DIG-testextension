@@ -13,6 +13,11 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+
 /**
  * The controller for Dig Login routes.
  *
@@ -54,41 +59,51 @@ class LoginController implements ControllerProviderInterface
         return $ctr;
     }
 
-    /**
-     * Handles GET and POST requests on /login and return a template.
-     *
-     * @param Request $request
-     *
-     * @return string
-     */
     public function callbackLogin(Application $app, Request $request)
     {
-        if ($request->isMethod('POST')) {
-            $identification = $request->get("username");
-            $password = $request->get("password");
+
+        $options = array(
+            'csrf_protection' => true,
+            'csrf_field_name' => '_token',
+            'csrf_token_id' => 'dig_login'
+        );
+
+        $form = $app['form.factory']->createBuilder(FormType::class, $options)
+            ->add('username')
+            ->add('password', PasswordType::class)
+            ->add('submit', SubmitType::class, array('label' => 'Login'))
+            ->getForm();
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
 
             $client = $this->getClient();
             $response = null;
-            $invalid_credentials = false;
 
             try {
-                $response = $client->getToken($identification, $password);
+                $response = $client->getToken($data['username'], $data['password']);
             } catch (\GuzzleHttp\Exception\ClientException $e) {
-                $invalid_credentials = true;
+            } catch (\GuzzleHttp\Exception\ConnectException $e) {
             }
 
             // If login is successful
-            if (!$invalid_credentials) {
-                $redirectResponse = new RedirectResponse('https://dig.kb7.nl/forum/');
+            if ($response != null) {
+                $redirectResponse = new RedirectResponse($this->config['flarum']['url']);
                 $redirectResponse->headers->setCookie(new Cookie('flarum_remember', $response['token']));
 
                 return $redirectResponse;
             } else {
-                return $app['twig']->render('dig_member_login.twig', ['title' => 'Look at This Nice Template', 'invalid_credentials' => true], []);
+                $request->getSession()->getFlashBag()->add(
+                    'notice',
+                    'Invalid credentials!'
+                );
             }
         }
 
-        return $app['twig']->render('dig_member_login.twig', ['title' => 'Look at This Nice Template'], []);
+        // display the form
+        return $app['twig']->render('dig_index.twig', array('form' => $form->createView()));
     }
 
     public function callbackListUsers(Request $request)
@@ -123,7 +138,7 @@ class LoginController implements ControllerProviderInterface
             throw new ConfigurationException("Missing flarum url");
         }
 
-        $client = new Client($this->config['flarum']['url'], $this->config['flarum']['token']);
+        $client = new Client($this->config['flarum']['url']."api/", $this->config['flarum']['token']);
 
         return $client;
     }

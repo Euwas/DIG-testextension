@@ -21,7 +21,7 @@ class EuwasTestExtension extends SimpleExtension
         $config = $this->getConfig();
 
         return [
-            '/dig' => new Controller\LoginController($config)
+            '/members' => new Controller\LoginController($config)
         ];
     }
 

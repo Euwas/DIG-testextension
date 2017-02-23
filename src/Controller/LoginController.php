@@ -2,21 +2,19 @@
 
 namespace Bolt\Extension\Euwas\EuwasTestExt\Controller;
 
-use Bolt\Extension\Bolt\Members\Exception\ConfigurationException;
 use Bolt\Extension\Euwas\EuwasTestExt\Client;
+use Bolt\Extension\Euwas\EuwasTestExt\Exception\ConfigurationException;
 use Silex\Application;
 use Silex\ControllerCollection;
 use Silex\ControllerProviderInterface;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-
-use Symfony\Component\Form\Extension\Core\Type\FormType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 /**
  * The controller for Dig Login routes.
@@ -134,7 +132,7 @@ class LoginController implements ControllerProviderInterface
 
     private function getClient()
     {
-        if (!isset($this->config['flarum']) || !isset($this->config['flarum']['url'])) {
+        if (empty($this->config['flarum']['url'])) {
             throw new ConfigurationException("Missing flarum url");
         }
 

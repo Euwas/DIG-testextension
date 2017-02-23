@@ -1,10 +1,8 @@
-Bolt Extension Starter
+EuwasTestExtension
 ======================
 
-A starter skeleton for a Bolt v3.x Extension
+A basic extension to explore the bolt framework for authentication options.
 
-To get going run the following command, replacing the last argument with the name of your extension:
+Ultimately it connects a local member authentication pool with flarum.  It should support membership roles and permission based page access control
 
-`composer create-project --no-install 'bolt/bolt-extension-starter:^3.0' <newextname>`  
-
-For more information, see this page in the Bolt documentation: https://docs.bolt.cm/extensions/building-starter/about
+Extension is fully configurable via the bolt backend
